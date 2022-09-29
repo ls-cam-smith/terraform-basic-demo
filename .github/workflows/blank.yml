@@ -46,9 +46,7 @@ jobs:
       - name: Terraform fmt
         id: fmt
         run: |
-          set +e
-          diff=$(terraform fmt -check -diff)
-          echo "::set-output name=diff::${diff}"
+          terraform fmt -check -diff
 
       # TODO, make the diff a reusable action, and the PR comment stuff in a specific thingy
       - name: Find Comment
@@ -66,5 +64,5 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             Build output
-            ${{ steps.fmt.outputs.diff }}
+            ${{ steps.fmt.outputs.stdout }}
           edit-mode: replace
