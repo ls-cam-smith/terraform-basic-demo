@@ -34,3 +34,37 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform fmt
+        id: fmt
+        run: |
+          set +e
+          diff=$(terraform fmt -check -diff)
+          echo "::set-output name=diff::${diff}"
+
+      # TODO, make the diff a reusable action, and the PR comment stuff in a specific thingy
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Build output
+
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Build output
+            ${{ steps.fmt.outputs.diff }}
+          edit-mode: replace
